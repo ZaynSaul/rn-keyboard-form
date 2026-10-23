@@ -21,6 +21,10 @@ Keyboard-aware forms for React Native and Expo, built on
 |:---:|:---:|
 | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/ipad-sheet.png" width="300" alt="Form in an iPad page sheet with Save and the toolbar on the keyboard"> | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/android-tablet-sheet.png" width="300" alt="Bottom sheet on an Android tablet with Send and the toolbar on the keyboard"> |
 
+| Sections with validation, iPhone | Sections with validation, Android | The example app |
+|:---:|:---:|:---:|
+| <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/iphone-sections.png" width="200" alt="Form in cards on iPhone: the focused field above Continue and the toolbar"> | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/android-sections.png" width="200" alt="Form in cards on Android: the focused field above Continue and the toolbar"> | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/iphone-home.png" width="200" alt="The example app's list of test screens"> |
+
 ## Install
 
 ```sh
