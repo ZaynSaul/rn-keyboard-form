@@ -1,14 +1,17 @@
 {
   "expo": {
     "name": "Keyboard Form",
-    "slug": "rn-keyboard-form-example",
+    "slug": "rn-keyboard-form",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.saulzayn.rnkeyboardform"
+      "bundleIdentifier": "com.saulzayn.rnkeyboardform",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,6 +25,12 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "newArchEnabled": true
+    "newArchEnabled": true,
+    "extra": {
+      "eas": {
+        "projectId": "24662ab6-e13a-4f6f-b549-508a8b3ffcda"
+      }
+    },
+    "owner": "tutoor"
   }
 }

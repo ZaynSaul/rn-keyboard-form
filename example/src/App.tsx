@@ -1,19 +1,18 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 import {
+  BackHandler,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Switch,
   Text,
-  TextInput,
   View,
-  type TextInputProps,
 } from 'react-native';
 
 import {
   darkTheme,
-  FormScroll,
   KeyboardHost,
   lightTheme,
   SheetScroll,
@@ -21,10 +20,44 @@ import {
   type KeyboardFormTheme,
 } from '@saulzayn/rn-keyboard-form';
 import { StatusBar } from 'expo-status-bar';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import {
+  KeyboardAvoidingView,
+  KeyboardController,
+} from 'react-native-keyboard-controller';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-type Screen = 'home' | 'form' | 'noToolbar';
+import {
+  GrowingNoteForm,
+  LongForm,
+  SectionsForm,
+  ShortForm,
+  SignInForm,
+} from './forms';
+import { fields, useRemote } from './remote';
+import { Button, Field, textColor } from './ui';
+
+const SCREENS: Record<string, { title: string; render: () => ReactNode }> = {
+  form: { title: 'Long form', render: () => <LongForm /> },
+  noToolbar: {
+    title: 'No toolbar',
+    render: () => <LongForm toolbar={false} />,
+  },
+  noFooter: { title: 'No footer', render: () => <LongForm footer={false} /> },
+  signIn: { title: 'Sign in', render: () => <SignInForm /> },
+  short: { title: 'Short form', render: () => <ShortForm /> },
+  sections: { title: 'Sections', render: () => <SectionsForm /> },
+  note: { title: 'Growing note', render: () => <GrowingNoteForm /> },
+};
+
+const ITEMS: [keyof typeof SCREENS, string][] = [
+  ['form', 'Long form with a Save footer'],
+  ['noToolbar', 'Long form without the toolbar'],
+  ['noFooter', 'Long form without a footer'],
+  ['signIn', 'Sign in (autofocus, password, return key)'],
+  ['short', 'Short form with a footer'],
+  ['sections', 'Sections, validation, growing footer'],
+  ['note', 'Note taller than the screen'],
+];
 
 export default function App() {
   const [dark, setDark] = useState(false);
@@ -63,28 +96,76 @@ function Demo({
 }) {
   const theme = useKeyboardFormTheme();
   const text = textColor(theme);
-  const [screen, setScreen] = useState<Screen>('home');
+  const [screen, setScreen] = useState<keyof typeof SCREENS | null>(null);
   const [modal, setModal] = useState(false);
   const [sheet, setSheet] = useState(false);
 
-  if (screen !== 'home') {
+  // Dev only: driven from the Mac on a real iPhone (see remote.ts).
+  useRemote((c) => {
+    switch (c.do) {
+      case 'screen':
+        setModal(false);
+        setSheet(false);
+        setScreen(c.arg && c.arg in SCREENS ? c.arg : null);
+        break;
+      case 'modal':
+        setModal(c.arg !== 'off');
+        break;
+      case 'sheet':
+        setSheet(c.arg !== 'off');
+        break;
+      case 'dark':
+        setDark(c.arg !== 'off');
+        break;
+      case 'ok':
+        setFrench(c.arg !== 'off');
+        break;
+      case 'focus':
+        fields.get(c.arg ?? '')?.focus();
+        break;
+      case 'type':
+        fields.get(c.arg?.split('=')[0] ?? '')?.setNativeProps({
+          text: c.arg?.split('=').slice(1).join('='),
+        });
+        break;
+      case 'next':
+        KeyboardController.setFocusTo('next');
+        break;
+      case 'prev':
+        KeyboardController.setFocusTo('prev');
+        break;
+      case 'dismiss':
+        KeyboardController.dismiss();
+        break;
+    }
+  });
+
+  // Android's back button goes back to this list instead of leaving the app.
+  useEffect(() => {
+    if (!screen) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setScreen(null);
+      return true;
+    });
+    return () => sub.remove();
+  }, [screen]);
+
+  if (screen) {
+    const { title, render } = SCREENS[screen]!;
     return (
       <SafeAreaView
-        edges={['top']}
+        edges={['top', 'left', 'right']}
         style={{ flex: 1, backgroundColor: theme.background }}
       >
-        <Header
-          title={screen === 'form' ? 'Long form' : 'No toolbar'}
-          onBack={() => setScreen('home')}
-        />
-        <LongForm toolbar={screen === 'form'} />
+        <Header title={title} onBack={() => setScreen(null)} />
+        {render()}
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-      <View style={{ padding: 16, gap: 12 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
         <Text style={[styles.title, { color: text }]}>rn-keyboard-form</Text>
         <Row label="Dark theme" value={dark} onChange={setDark} />
         <Row
@@ -92,14 +173,9 @@ function Demo({
           value={french}
           onChange={setFrench}
         />
-        <Item
-          title="Long form with a Save footer"
-          onPress={() => setScreen('form')}
-        />
-        <Item
-          title="Long form without the toolbar"
-          onPress={() => setScreen('noToolbar')}
-        />
+        {ITEMS.map(([key, title]) => (
+          <Item key={key} title={title} onPress={() => setScreen(key)} />
+        ))}
         <Item
           title="Form in a modal sheet (iOS page sheet)"
           onPress={() => setModal(true)}
@@ -108,7 +184,7 @@ function Demo({
           title="Bottom sheet with several fields"
           onPress={() => setSheet(true)}
         />
-      </View>
+      </ScrollView>
 
       <Modal
         visible={modal}
@@ -116,10 +192,14 @@ function Demo({
         presentationStyle="pageSheet"
         onRequestClose={() => setModal(false)}
       >
-        <View style={{ flex: 1, backgroundColor: theme.background }}>
+        {/* Android draws the modal under the status bar; an iOS page sheet has no top inset. */}
+        <SafeAreaView
+          edges={['top', 'left', 'right']}
+          style={{ flex: 1, backgroundColor: theme.background }}
+        >
           <Header title="Modal form" onBack={() => setModal(false)} />
-          <LongForm toolbar />
-        </View>
+          <LongForm />
+        </SafeAreaView>
       </Modal>
 
       <Modal
@@ -135,13 +215,20 @@ function Demo({
           pointerEvents="box-none"
         >
           <SafeAreaView
-            edges={['bottom']}
+            edges={['bottom', 'left', 'right']}
             style={[styles.sheet, { backgroundColor: theme.backdrop }]}
           >
             <Text style={[styles.sheetTitle, { color: text }]}>
               Reply to a review
             </Text>
-            <SheetScroll contentContainerStyle={{ gap: 12, padding: 16 }}>
+            <SheetScroll
+              contentContainerStyle={{ gap: 12, padding: 16 }}
+              footer={
+                <View style={styles.sheetFooter}>
+                  <Button title="Send" onPress={() => setSheet(false)} />
+                </View>
+              }
+            >
               <Field label="Name" />
               <Field label="Phone" keyboardType="phone-pad" />
               <Field
@@ -151,69 +238,11 @@ function Demo({
               />
               <Field label="Reply" multiline />
               <Field label="Note" />
-              <Button title="Send" onPress={() => setSheet(false)} />
             </SheetScroll>
           </SafeAreaView>
         </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
-  );
-}
-
-function LongForm({ toolbar }: { toolbar: boolean }) {
-  const theme = useKeyboardFormTheme();
-  return (
-    <FormScroll
-      toolbar={toolbar}
-      footer={
-        <SafeAreaView
-          edges={['bottom']}
-          style={{
-            padding: 16,
-            backgroundColor: theme.backdrop,
-            borderTopWidth: StyleSheet.hairlineWidth,
-            borderColor: theme.toolbar.disabled,
-          }}
-        >
-          <Button title="Save" onPress={() => undefined} />
-        </SafeAreaView>
-      }
-    >
-      <Field label="Service name" />
-      <Field label="Price" keyboardType="numeric" />
-      <Field label="Duration (minutes)" keyboardType="number-pad" />
-      <Field label="Description" multiline />
-      <Field label="Buffer before" keyboardType="number-pad" />
-      <Field label="Buffer after" keyboardType="number-pad" />
-      <Field label="Deposit %" keyboardType="number-pad" />
-      <Field label="Notes for staff" multiline />
-      <Field label="Internal code" />
-      <Field label="Last field" />
-    </FormScroll>
-  );
-}
-
-function Field({ label, ...input }: { label: string } & TextInputProps) {
-  const theme = useKeyboardFormTheme();
-  const text = textColor(theme);
-  return (
-    <View style={{ gap: 6 }}>
-      <Text style={{ color: text, fontWeight: '600' }}>{label}</Text>
-      <TextInput
-        placeholder={label}
-        placeholderTextColor={theme.toolbar.disabled}
-        style={[
-          styles.input,
-          {
-            color: text,
-            backgroundColor: theme.backdrop,
-            borderColor: theme.toolbar.disabled,
-          },
-          input.multiline && { minHeight: 96, textAlignVertical: 'top' },
-        ]}
-        {...input}
-      />
-    </View>
   );
 }
 
@@ -262,27 +291,6 @@ function Row({
   );
 }
 
-function Button({
-  title,
-  onPress,
-}: {
-  title: string;
-  onPress: () => void;
-}): ReactNode {
-  const theme = useKeyboardFormTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.button, { backgroundColor: theme.toolbar.tint }]}
-    >
-      <Text style={styles.buttonText}>{title}</Text>
-    </Pressable>
-  );
-}
-
-const textColor = (theme: KeyboardFormTheme) =>
-  theme.background === darkTheme.background ? '#F5F6FA' : '#11141C';
-
 const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: '800', marginBottom: 8 },
   header: {
@@ -299,15 +307,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-  },
-  button: { borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   scrim: { ...StyleSheet.absoluteFill, backgroundColor: '#00000066' },
   sheetHost: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
@@ -315,6 +314,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
+  sheetFooter: { paddingHorizontal: 16, paddingVertical: 12 },
   sheetTitle: {
     fontSize: 18,
     fontWeight: '700',
