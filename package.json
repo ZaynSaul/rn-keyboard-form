@@ -1,6 +1,6 @@
 {
   "name": "@saulzayn/rn-keyboard-form",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Keyboard-aware forms for React Native: fields stay above the keyboard, a footer rides on it, and sheets scroll the focused field into view.",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",

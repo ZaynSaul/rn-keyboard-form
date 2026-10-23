@@ -6,9 +6,16 @@ Keyboard-aware forms for React Native and Expo, built on
 - The focused field always scrolls above the keyboard, and above whatever sits on it.
 - A **footer** (e.g. a Save button) stays at the bottom and rides on top of the keyboard while it's open.
 - A **toolbar** on the keyboard moves to the previous / next field or closes it.
-- Works inside **iOS modal sheets** (no home-bar padding there) and with the **rounded keyboard of iOS 26**.
-- **Bottom sheets** with several fields scroll the focused one into view.
+- Works inside **iOS modal sheets**, including **iPad form and page sheets**, and with the **rounded
+  keyboard of iOS 26+**.
+- Phones and **tablets**, **portrait and landscape**, and turning the device with the keyboard open.
+- **Bottom sheets** with several fields: the focused one scrolls into view, the same bar sits on the
+  keyboard, and a footer (e.g. Send) stays in sight.
 - Themeable: light, dark, or your own colours, spacing and labels.
+
+| iPhone, long form | iPhone (iOS 27), bottom sheet | Android | iPad, page sheet |
+|:---:|:---:|:---:|:---:|
+| <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/iphone-form.png" width="180" alt="Long form on iPhone: the focused field above the keyboard, Save and the toolbar on it"> | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/iphone-bottom-sheet.png" width="180" alt="Bottom sheet on iPhone with the rounded keyboard: Send and the toolbar stay in sight"> | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/android-form.png" width="180" alt="Long form on Android with Save and the toolbar on the keyboard"> | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/ipad-sheet.png" width="250" alt="Form in an iPad page sheet with Save and the toolbar on the keyboard"> |
 
 ## Install
 
@@ -65,12 +72,20 @@ function EditService() {
 ```
 
 The scrolling body of a bottom sheet with fields. Your sheet moves itself above the keyboard
-(e.g. with `KeyboardAvoidingView`); once it has, this scrolls the focused field into view:
+(e.g. with `KeyboardAvoidingView`); once it has, this scrolls the focused field into view. The footer
+stays under the fields, on the keyboard while it's open:
 
 ```tsx
 import { SheetScroll } from '@saulzayn/rn-keyboard-form';
 
-<SheetScroll contentContainerStyle={{ padding: 16, gap: 12 }}>
+<SheetScroll
+  contentContainerStyle={{ padding: 16, gap: 12 }}
+  footer={
+    <View style={{ padding: 16 }}>
+      <Button title="Send" onPress={send} />
+    </View>
+  }
+>
   <TextInput placeholder="Name" />
   <TextInput placeholder="Reply" multiline />
 </SheetScroll>;
@@ -86,11 +101,18 @@ All `ScrollView` props, plus:
 |---|---|---|---|
 | `footer` | `ReactNode` | — | Stays at the bottom and rides on the keyboard. |
 | `toolbar` | `boolean` | `true` | The previous / next / Done bar on the keyboard. |
+| `hideFooterBelow` | `number` | `500` | Below this window height (a phone on its side) the footer stays behind the keyboard and fades out, so the field has room. `0` to always ride. |
 | `theme` | `KeyboardFormThemeOverride` | — | This screen's changes to the theme. |
 
 ### `SheetScroll`
 
-All `ScrollView` props.
+All `ScrollView` props, plus:
+
+| Prop | Type | Default | |
+|---|---|---|---|
+| `footer` | `ReactNode` | — | Under the fields, always in sight: on the keyboard while it's open. |
+| `toolbar` | `boolean` | `true` | The previous / next / Done bar, at the bottom of the sheet while the keyboard is open. |
+| `theme` | `KeyboardFormThemeOverride` | — | This sheet's changes to the theme. |
 
 ### `KeyboardHost`
 
@@ -130,8 +152,9 @@ yarn
 yarn example android   # or: yarn example ios
 ```
 
-It has a long form with a footer, the same without the toolbar, a form in an iOS page sheet,
-and a bottom sheet with several fields, with light / dark and label switches.
+It has a long form (with and without the toolbar or footer), sign in, a short form, sections with
+validation, a note taller than the screen, a form in an iOS page sheet and a bottom sheet, with
+light / dark and label switches.
 
 ## Contributing
 
