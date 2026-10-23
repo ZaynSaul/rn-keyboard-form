@@ -13,9 +13,13 @@ Keyboard-aware forms for React Native and Expo, built on
   keyboard, and a footer (e.g. Send) stays in sight.
 - Themeable: light, dark, or your own colours, spacing and labels.
 
-| iPhone, long form | iPhone (iOS 27), bottom sheet | Android | iPad, page sheet |
-|:---:|:---:|:---:|:---:|
-| <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/iphone-form.png" width="180" alt="Long form on iPhone: the focused field above the keyboard, Save and the toolbar on it"> | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/iphone-bottom-sheet.png" width="180" alt="Bottom sheet on iPhone with the rounded keyboard: Send and the toolbar stay in sight"> | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/android-form.png" width="180" alt="Long form on Android with Save and the toolbar on the keyboard"> | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/ipad-sheet.png" width="250" alt="Form in an iPad page sheet with Save and the toolbar on the keyboard"> |
+| iPhone, long form | iPhone (iOS 27), bottom sheet | Android, long form |
+|:---:|:---:|:---:|
+| <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/iphone-form.png" width="200" alt="Long form on iPhone: the focused field above the keyboard, Save and the toolbar on it"> | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/iphone-bottom-sheet.png" width="200" alt="Bottom sheet on iPhone with the rounded keyboard: Send and the toolbar stay in sight"> | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/android-form.png" width="200" alt="Long form on Android with Save and the toolbar on the keyboard"> |
+
+| iPad, page sheet | Android tablet, bottom sheet |
+|:---:|:---:|
+| <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/ipad-sheet.png" width="300" alt="Form in an iPad page sheet with Save and the toolbar on the keyboard"> | <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/android-tablet-sheet.png" width="300" alt="Bottom sheet on an Android tablet with Send and the toolbar on the keyboard"> |
 
 ## Install
 
