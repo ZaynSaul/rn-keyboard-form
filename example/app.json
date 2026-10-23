@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "RnKeyboardForm Example",
-    "slug": "@saulzayn/rn-keyboard-form-example",
+    "name": "Keyboard Form",
+    "slug": "rn-keyboard-form-example",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "saulzayn.rnkeyboardform.example"
+      "bundleIdentifier": "com.saulzayn.rnkeyboardform"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,10 +17,11 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "saulzayn.rnkeyboardform.example"
+      "package": "com.saulzayn.rnkeyboardform"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "newArchEnabled": true
   }
 }

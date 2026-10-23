@@ -40,6 +40,10 @@
   },
   "keywords": [
     "react-native",
+    "expo",
+    "keyboard",
+    "form",
+    "keyboard-aware",
     "ios",
     "android"
   ],
@@ -60,24 +64,30 @@
     "@eslint/compat": "^2.1.0",
     "@eslint/eslintrc": "^3.3.6",
     "@eslint/js": "^9.39.5",
-    "@react-native/babel-preset": "0.86.2",
-    "@react-native/eslint-config": "0.86.2",
-    "@types/react": "^19.2.0",
+    "@react-native/babel-preset": "0.88.0",
+    "@react-native/eslint-config": "0.88.0",
+    "@types/react": "~19.3.0",
     "del-cli": "^7.0.0",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-ft-flow": "^3.0.11",
     "eslint-plugin-prettier": "^5.5.6",
     "prettier": "^3.9.6",
-    "react": "19.2.3",
-    "react-native": "0.86.3",
+    "react": "19.3.0",
+    "react-native": "0.88.0",
     "react-native-builder-bob": "^0.43.0",
+    "react-native-keyboard-controller": "1.22.7",
+    "react-native-reanimated": "4.7.1",
+    "react-native-safe-area-context": "5.10.1",
+    "react-native-worklets": "0.13.0",
     "turbo": "^2.10.8",
-    "typescript": "^6.0.3"
+    "typescript": "~6.0.3"
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-keyboard-controller": ">=1.22.6 <1.23.0",
+    "react-native-safe-area-context": ">=5.0.0"
   },
   "workspaces": [
     "example"
