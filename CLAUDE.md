@@ -38,6 +38,10 @@ Maintainer-only notes (status, devices, local setup) live in `CLAUDE.local.md`, 
   default) in the sheet's own layout at its bottom, shown only while the keyboard is open, with a strip
   under the keyboard's rounded corners. Its `footer` prop (e.g. Send) sits under the fields and above
   the bar, so it stays in sight on the keyboard.
+- Both components wrap their fields in `KeyboardToolbar.Group`, so ↑/↓ stay among their own fields
+  (a sheet is its own Android window; without the group ↓ jumped to a field behind it). SheetScroll's
+  toolbar stays mounted (hidden while closed): it learns the focused field's index from `focusDidSet`,
+  sent before the keyboard opens, so mounting it late left the arrows wrong.
 - Toolbar height 42 and lift 11 are keyboard-controller 1.22's `KEYBOARD_TOOLBAR_HEIGHT` and
   `OPENED_OFFSET` (not exported); recheck when it changes (peer range is `>=1.22.6 <1.23.0` on purpose).
 

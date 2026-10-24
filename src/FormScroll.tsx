@@ -254,33 +254,36 @@ export function FormScroll({
       onLayout={() => measureArea.current()}
       style={[styles.screen, { backgroundColor: theme.background }]}
     >
-      <KeyboardAwareScrollView
-        ref={scrollRef}
-        keyboardShouldPersistTaps="handled"
-        scrollEventThrottle={16}
-        bottomOffset={covered + theme.fieldGap}
-        extraKeyboardSpace={covered}
-        contentContainerStyle={[
-          {
-            padding: theme.padding,
-            gap: theme.gap,
-            paddingBottom: theme.padding * 3,
-          },
-          contentContainerStyle,
-        ]}
-        {...scroll}
-        onScroll={(e) => {
-          offset.current = e.nativeEvent.contentOffset.y;
-          scroll.onScroll?.(e);
-        }}
-        onContentSizeChange={(w, h) => {
-          contentH.current = h;
-          revealFocused.current();
-          scroll.onContentSizeChange?.(w, h);
-        }}
-      >
-        {children}
-      </KeyboardAwareScrollView>
+      {/* Previous / next stay among this form's fields, not those of screens mounted behind it. */}
+      <KeyboardToolbar.Group style={styles.screen}>
+        <KeyboardAwareScrollView
+          ref={scrollRef}
+          keyboardShouldPersistTaps="handled"
+          scrollEventThrottle={16}
+          bottomOffset={covered + theme.fieldGap}
+          extraKeyboardSpace={covered}
+          contentContainerStyle={[
+            {
+              padding: theme.padding,
+              gap: theme.gap,
+              paddingBottom: theme.padding * 3,
+            },
+            contentContainerStyle,
+          ]}
+          {...scroll}
+          onScroll={(e) => {
+            offset.current = e.nativeEvent.contentOffset.y;
+            scroll.onScroll?.(e);
+          }}
+          onContentSizeChange={(w, h) => {
+            contentH.current = h;
+            revealFocused.current();
+            scroll.onContentSizeChange?.(w, h);
+          }}
+        >
+          {children}
+        </KeyboardAwareScrollView>
+      </KeyboardToolbar.Group>
 
       <SafeAreaView
         edges={['bottom']}

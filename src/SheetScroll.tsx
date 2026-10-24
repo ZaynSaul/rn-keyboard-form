@@ -122,27 +122,34 @@ export function SheetScroll({
 
   return (
     <>
-      <ScrollView
-        ref={ref}
-        keyboardShouldPersistTaps="handled"
-        scrollEventThrottle={32}
-        style={[styles.scroll, style]}
-        onLayout={(e) => {
-          view.current.height = e.nativeEvent.layout.height;
-          onLayout?.(e);
-        }}
-        onScroll={(e) => {
-          view.current.y = e.nativeEvent.contentOffset.y;
-          onScroll?.(e);
-        }}
-        {...scroll}
-      >
-        {children}
-      </ScrollView>
+      {/* Previous / next stay among this sheet's fields. Without a group they're counted in the app's
+          main window, which a sheet (its own window) isn't part of: the arrows jumped behind it. */}
+      <KeyboardToolbar.Group style={styles.scroll}>
+        <ScrollView
+          ref={ref}
+          keyboardShouldPersistTaps="handled"
+          scrollEventThrottle={32}
+          style={[styles.scroll, style]}
+          onLayout={(e) => {
+            view.current.height = e.nativeEvent.layout.height;
+            onLayout?.(e);
+          }}
+          onScroll={(e) => {
+            view.current.y = e.nativeEvent.contentOffset.y;
+            onScroll?.(e);
+          }}
+          {...scroll}
+        >
+          {children}
+        </ScrollView>
+      </KeyboardToolbar.Group>
       {footer}
-      {toolbar && open ? (
+      {toolbar ? (
         // In the sheet's own layout, at its bottom: the sheet sits on the keyboard, so this does too.
-        <View style={styles.bar}>
+        // Mounted all along and only hidden while the keyboard is closed: it learns which field has
+        // focus (for the arrows) from an event sent when the field is focused, before the keyboard
+        // opens.
+        <View style={[styles.bar, !open && styles.hidden]}>
           <View
             style={[
               styles.underlap,
@@ -168,6 +175,7 @@ export function SheetScroll({
 const styles = StyleSheet.create({
   scroll: { flexShrink: 1 },
   bar: { height: TOOLBAR_H },
+  hidden: { display: 'none' },
   underlap: {
     position: 'absolute',
     left: 0,
