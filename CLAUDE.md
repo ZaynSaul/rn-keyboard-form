@@ -76,4 +76,3 @@ first keyboard open can be off.
 
 - Yarn only, never `npm install` for dependencies. Node 24.
 - New npm dependencies must be at least 2 weeks old.
-- Commits end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
