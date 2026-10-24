@@ -1,5 +1,9 @@
 # @saulzayn/rn-keyboard-form
 
+[![npm version](https://img.shields.io/npm/v/@saulzayn/rn-keyboard-form.svg)](https://www.npmjs.com/package/@saulzayn/rn-keyboard-form)
+[![npm downloads](https://img.shields.io/npm/dw/@saulzayn/rn-keyboard-form.svg)](https://www.npmjs.com/package/@saulzayn/rn-keyboard-form)
+[![license](https://img.shields.io/npm/l/@saulzayn/rn-keyboard-form.svg)](LICENSE)
+
 Keyboard-aware forms for React Native and Expo, built on
 [react-native-keyboard-controller](https://github.com/kirillzyusko/react-native-keyboard-controller).
 
