@@ -7,6 +7,10 @@
 Keyboard-aware forms for React Native and Expo, built on
 [react-native-keyboard-controller](https://github.com/kirillzyusko/react-native-keyboard-controller).
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ZaynSaul/rn-keyboard-form/main/docs/demo.gif" width="280" alt="The same long form without the package (the keyboard hides the field and Save) and with it (the field and Save stay above the keyboard)">
+</p>
+
 - The focused field always scrolls above the keyboard, and above whatever sits on it.
 - A **footer** (e.g. a Save button) stays at the bottom and rides on top of the keyboard while it's open.
 - A **toolbar** on the keyboard moves to the previous / next field or closes it.
