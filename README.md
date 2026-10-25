@@ -50,27 +50,60 @@ Expo SDK 58 (keyboard-controller 1.22, React Native 0.88) and Expo SDK 57 (1.21.
 
 ## Use
 
-Wrap the app once, inside your `SafeAreaProvider`:
+### 1. Wrap the app once
+
+**Expo Router** (`app/_layout.tsx`, the root layout):
 
 ```tsx
+import { Stack } from 'expo-router';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { KeyboardHost } from '@saulzayn/rn-keyboard-form';
 
-export default function App() {
+export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <KeyboardHost>{/* your navigation */}</KeyboardHost>
+      <KeyboardHost>
+        <Stack />
+      </KeyboardHost>
     </SafeAreaProvider>
   );
 }
 ```
 
-A screen of fields with a Save button:
+Only the root `_layout.tsx` needs it: every screen and nested layout (tabs, stacks, modals) is
+inside it.
+
+**Without Expo Router** (React Navigation or a single screen, in `App.tsx`):
 
 ```tsx
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { KeyboardHost } from '@saulzayn/rn-keyboard-form';
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <KeyboardHost>{/* your NavigationContainer or screens */}</KeyboardHost>
+    </SafeAreaProvider>
+  );
+}
+```
+
+`KeyboardHost` can sit inside or outside your other providers (gesture handler, theme, data). Pass
+`theme={darkTheme}` (or your own colours) to style every form at once; see [Theming](#theming).
+
+### 2. A screen of fields with a Save button
+
+With Expo Router this is a screen file such as `app/service/edit.tsx`:
+
+```tsx
+import { Button, TextInput } from 'react-native';
 import { FormScroll } from '@saulzayn/rn-keyboard-form';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-function EditService() {
+export default function EditService() {
+  const save = () => {
+    /* … */
+  };
   return (
     <FormScroll
       footer={
@@ -87,6 +120,8 @@ function EditService() {
   );
 }
 ```
+
+### 3. A bottom sheet with fields
 
 The scrolling body of a bottom sheet with fields. Your sheet moves itself above the keyboard
 (e.g. with `KeyboardAvoidingView`); once it has, this scrolls the focused field into view. The footer
