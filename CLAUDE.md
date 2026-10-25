@@ -42,8 +42,12 @@ Maintainer-only notes (status, devices, local setup) live in `CLAUDE.local.md`, 
   (a sheet is its own Android window; without the group ↓ jumped to a field behind it). SheetScroll's
   toolbar stays mounted (hidden while closed): it learns the focused field's index from `focusDidSet`,
   sent before the keyboard opens, so mounting it late left the arrows wrong.
-- Toolbar height 42 and lift 11 are keyboard-controller 1.22's `KEYBOARD_TOOLBAR_HEIGHT` and
-  `OPENED_OFFSET` (not exported); recheck when it changes (peer range is `>=1.22.6 <1.23.0` on purpose).
+- Toolbar height 42 and lift 11 are keyboard-controller's `KEYBOARD_TOOLBAR_HEIGHT` and
+  `OPENED_OFFSET` (not exported, same in 1.21 and 1.22); recheck on each new keyboard-controller minor.
+- Peer range `>=1.21.6 <2.0.0`: 1.21.6 (Expo SDK 56) is the first with `KeyboardToolbar.Group` and
+  `viewPositionInWindow`. Only APIs present in 1.21 may be used: `KEYBOARD_BORDER_RADIUS` (not
+  `KEYBOARD_HAS_ROUNDED_CORNERS`, 1.22 only); 1.21 types the scroll view ref without `scrollTo`.
+  Checked on a throwaway Expo SDK 57 app (1.21.9), whose native code doesn't build on RN 0.88.
 
 Known: a multiline field low on screen first scrolls only to its caret (keyboard-controller behaviour),
 then follows typing. Right after moving the app between full screen and an Android floating window, the

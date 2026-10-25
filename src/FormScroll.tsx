@@ -12,13 +12,14 @@ import {
   Dimensions,
   findNodeHandle,
   Platform,
+  ScrollView,
   useWindowDimensions,
   View,
   type ScrollViewProps,
 } from 'react-native';
 
 import {
-  KEYBOARD_HAS_ROUNDED_CORNERS,
+  KEYBOARD_BORDER_RADIUS,
   KeyboardAwareScrollView,
   KeyboardControllerNative,
   KeyboardEvents,
@@ -41,10 +42,11 @@ import {
 import { useKeyboardFormTheme, type KeyboardFormThemeOverride } from './theme';
 
 // The toolbar's own height, and how far it lifts off a keyboard with rounded corners (iOS 26): the
-// same on every device, keyboard-controller 1.22's KEYBOARD_TOOLBAR_HEIGHT and OPENED_OFFSET (not
-// exported). Check again when it changes.
+// same on every device, keyboard-controller's KEYBOARD_TOOLBAR_HEIGHT and OPENED_OFFSET (not
+// exported; unchanged from 1.21 to 1.22). Check again when it changes. KEYBOARD_HAS_ROUNDED_CORNERS
+// is only exported from 1.22, the radius from 1.21 on.
 const TOOLBAR_H = 42;
-const TOOLBAR_LIFT = KEYBOARD_HAS_ROUNDED_CORNERS ? 11 : 0;
+const TOOLBAR_LIFT = KEYBOARD_BORDER_RADIUS > 0 ? 11 : 0;
 // The strip behind the toolbar reaches this far under the keyboard's top edge (its rounded corners).
 const CORNER_UNDERLAP = 30;
 
@@ -156,7 +158,11 @@ export function FormScroll({
   const live = bar + (footerRides ? Math.max(0, footerH - bottomInset) : 0);
   const covered = useSettled(live);
   const screenRef = useRef<ComponentRef<typeof View>>(null);
-  const scrollRef = useRef<KeyboardAwareScrollViewRef>(null);
+  // 1.21 types the ref as the ScrollView class, without scrollTo; it's there at runtime.
+  const scrollRef = useRef<
+    KeyboardAwareScrollViewRef &
+      Pick<ComponentRef<typeof ScrollView>, 'scrollTo'>
+  >(null);
   const offset = useRef(0);
   const contentH = useRef(0);
   // The keyboard's height from its own events: KeyboardController.state() can be left at an old

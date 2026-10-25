@@ -41,7 +41,8 @@ With Expo, use `npx expo install` for the last three so they match your SDK.
 `react-native-keyboard-controller` is a native module, so Expo Go won't do: use a
 [development build](https://docs.expo.dev/develop/development-builds/introduction/).
 
-Tested with react-native-keyboard-controller 1.22, React Native 0.88 and Expo SDK 58.
+Works with react-native-keyboard-controller 1.21.6 and newer (Expo SDK 56, 57 and 58). Tested on
+Expo SDK 58 (keyboard-controller 1.22, React Native 0.88) and Expo SDK 57 (1.21.9, React Native 0.86).
 
 ## Use
 
