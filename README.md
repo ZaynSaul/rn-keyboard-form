@@ -175,6 +175,12 @@ const go = (to: number) => {
 Validation errors and a banner in the footer on Next keep the focused field in view. The same works in a
 bottom sheet with `<SheetScroll key={step}>`: the sheet fits each step's height.
 
+On Android, removing the focused field closes the keyboard, and a field focused while it's closing can
+be left without one (always in a `Modal` such as a bottom sheet). There, wait for `keyboardDidHide`
+before focusing the next step's field, and if Android already gave it focus without a keyboard, blur it
+first: see `focusNextStep` in [example/src/ui.tsx](example/src/ui.tsx). The keyboard then closes and
+opens again between steps on Android; on iOS it stays up.
+
 ## Props
 
 ### `FormScroll`

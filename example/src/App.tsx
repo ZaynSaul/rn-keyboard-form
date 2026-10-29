@@ -42,7 +42,7 @@ import {
   StepsForm,
 } from './forms';
 import { buttons, changers, fields, useRemote } from './remote';
-import { Button, Field, textColor } from './ui';
+import { Button, Field, focusNextStep, textColor } from './ui';
 
 const SCREENS: Record<string, { title: string; render: () => ReactNode }> = {
   form: { title: 'Long form', render: () => <LongForm /> },
@@ -287,8 +287,8 @@ function StepsSheet({
   const [step, setStep] = useState(0);
   const first = useRef<ComponentRef<typeof TextInput>>(null);
   const go = (to: number) => {
+    focusNextStep(first);
     setStep(to);
-    setTimeout(() => first.current?.focus(), 50);
   };
   const close = () => {
     onClose();

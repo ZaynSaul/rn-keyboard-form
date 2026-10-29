@@ -1,6 +1,8 @@
-import type { ComponentRef, ReactNode, Ref } from 'react';
+import type { ComponentRef, ReactNode, Ref, RefObject } from 'react';
 
 import {
+  Keyboard,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -22,6 +24,42 @@ export const textColor = (theme: KeyboardFormTheme) =>
   theme.background === darkTheme.background ? '#F5F6FA' : '#11141C';
 
 export const ERROR = '#E5484D';
+
+/**
+ * Call just before showing the next step: focuses its first field once it's there, keeping the
+ * keyboard in use. On Android, removing the focused field closes the keyboard, and a field focused
+ * while it's closing can be left without one (always in a Modal), so there this waits until it has
+ * closed and opens it again for the new field.
+ */
+export function focusNextStep(
+  ref: RefObject<ComponentRef<typeof TextInput> | null>
+) {
+  if (Platform.OS !== 'android' || !Keyboard.isVisible()) {
+    setTimeout(() => ref.current?.focus(), 50);
+    return;
+  }
+  let done = false;
+  const run = () => {
+    if (done) return;
+    done = true;
+    sub.remove();
+    clearTimeout(fallback);
+    // A moment later, so the ref points at the new step's field even when the keyboard closed
+    // before it was mounted.
+    setTimeout(() => {
+      const input = ref.current;
+      // Android may already have given that field focus by itself, without a keyboard; focus()
+      // would then do nothing.
+      if (input?.isFocused()) {
+        input.blur();
+        setTimeout(() => input.focus(), 50);
+      } else input?.focus();
+    }, 50);
+  };
+  const sub = Keyboard.addListener('keyboardDidHide', run);
+  // In case it stays up after all.
+  const fallback = setTimeout(run, 500);
+}
 
 export function Field({
   label,

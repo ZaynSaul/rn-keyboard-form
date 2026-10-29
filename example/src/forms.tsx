@@ -11,7 +11,7 @@ import {
 
 import { FormScroll, useKeyboardFormTheme } from '@saulzayn/rn-keyboard-form';
 
-import { Button, ERROR, Field, Footer, textColor } from './ui';
+import { Button, ERROR, Field, focusNextStep, Footer, textColor } from './ui';
 
 /** Ten fields, two of them multiline. */
 export function LongForm({
@@ -229,9 +229,8 @@ export function StepsForm() {
 
   const go = (to: number) => {
     setTried(false);
+    focusNextStep(first);
     setStep(to);
-    // Once the next step's fields are mounted.
-    setTimeout(() => first.current?.focus(), 50);
   };
   const next = () => {
     if (missing.length) {
