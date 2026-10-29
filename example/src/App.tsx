@@ -1,4 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentRef,
+  type ReactNode,
+} from 'react';
 
 import {
   BackHandler,
@@ -8,6 +14,7 @@ import {
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 
@@ -32,8 +39,9 @@ import {
   SectionsForm,
   ShortForm,
   SignInForm,
+  StepsForm,
 } from './forms';
-import { fields, useRemote } from './remote';
+import { buttons, changers, fields, useRemote } from './remote';
 import { Button, Field, textColor } from './ui';
 
 const SCREENS: Record<string, { title: string; render: () => ReactNode }> = {
@@ -47,6 +55,7 @@ const SCREENS: Record<string, { title: string; render: () => ReactNode }> = {
   short: { title: 'Short form', render: () => <ShortForm /> },
   sections: { title: 'Sections', render: () => <SectionsForm /> },
   note: { title: 'Growing note', render: () => <GrowingNoteForm /> },
+  steps: { title: 'Steps', render: () => <StepsForm /> },
 };
 
 const ITEMS: [keyof typeof SCREENS, string][] = [
@@ -57,6 +66,7 @@ const ITEMS: [keyof typeof SCREENS, string][] = [
   ['short', 'Short form with a footer'],
   ['sections', 'Sections, validation, growing footer'],
   ['note', 'Note taller than the screen'],
+  ['steps', 'Form in steps (Back / Next)'],
 ];
 
 export default function App() {
@@ -99,6 +109,7 @@ function Demo({
   const [screen, setScreen] = useState<keyof typeof SCREENS | null>(null);
   const [modal, setModal] = useState(false);
   const [sheet, setSheet] = useState(false);
+  const [stepsSheet, setStepsSheet] = useState(false);
 
   // Dev only: driven from the Mac on a real iPhone (see remote.ts).
   useRemote((c) => {
@@ -106,6 +117,7 @@ function Demo({
       case 'screen':
         setModal(false);
         setSheet(false);
+        setStepsSheet(false);
         setScreen(c.arg && c.arg in SCREENS ? c.arg : null);
         break;
       case 'modal':
@@ -113,6 +125,9 @@ function Demo({
         break;
       case 'sheet':
         setSheet(c.arg !== 'off');
+        break;
+      case 'stepsheet':
+        setStepsSheet(c.arg !== 'off');
         break;
       case 'dark':
         setDark(c.arg !== 'off');
@@ -123,10 +138,15 @@ function Demo({
       case 'focus':
         fields.get(c.arg ?? '')?.focus();
         break;
-      case 'type':
-        fields.get(c.arg?.split('=')[0] ?? '')?.setNativeProps({
-          text: c.arg?.split('=').slice(1).join('='),
-        });
+      case 'type': {
+        const [label = '', ...rest] = c.arg?.split('=') ?? [];
+        const text = rest.join('=');
+        fields.get(label)?.setNativeProps({ text });
+        changers.get(label)?.(text);
+        break;
+      }
+      case 'press':
+        buttons.get(c.arg ?? '')?.();
         break;
       case 'next':
         KeyboardController.setFocusTo('next');
@@ -183,6 +203,10 @@ function Demo({
         <Item
           title="Bottom sheet with several fields"
           onPress={() => setSheet(true)}
+        />
+        <Item
+          title="Bottom sheet in two steps"
+          onPress={() => setStepsSheet(true)}
         />
       </ScrollView>
 
@@ -242,7 +266,90 @@ function Demo({
           </SafeAreaView>
         </KeyboardAvoidingView>
       </Modal>
+      <StepsSheet visible={stepsSheet} onClose={() => setStepsSheet(false)} />
     </SafeAreaView>
+  );
+}
+
+/**
+ * A booking sheet in two steps: contact details, then the message. `key={step}` gives each step a
+ * fresh SheetScroll; the sheet fits each step's height.
+ */
+function StepsSheet({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const theme = useKeyboardFormTheme();
+  const text = textColor(theme);
+  const [step, setStep] = useState(0);
+  const first = useRef<ComponentRef<typeof TextInput>>(null);
+  const go = (to: number) => {
+    setStep(to);
+    setTimeout(() => first.current?.focus(), 50);
+  };
+  const close = () => {
+    onClose();
+    setStep(0);
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={close}
+    >
+      <Pressable style={styles.scrim} onPress={close} />
+      <KeyboardAvoidingView
+        behavior="padding"
+        style={styles.sheetHost}
+        pointerEvents="box-none"
+      >
+        <SafeAreaView
+          edges={['bottom', 'left', 'right']}
+          style={[styles.sheet, { backgroundColor: theme.backdrop }]}
+        >
+          <Text style={[styles.sheetTitle, { color: text }]}>
+            Book a visit · step {step + 1} of 2
+          </Text>
+          <SheetScroll
+            key={step}
+            contentContainerStyle={{ gap: 12, padding: 16 }}
+            footer={
+              <View style={[styles.sheetFooter, styles.sheetButtons]}>
+                {step > 0 ? (
+                  <View style={{ flex: 1 }}>
+                    <Button title="Back" onPress={() => go(0)} secondary />
+                  </View>
+                ) : null}
+                <View style={{ flex: 1 }}>
+                  <Button
+                    title={step === 0 ? 'Next' : 'Book'}
+                    onPress={step === 0 ? () => go(1) : close}
+                  />
+                </View>
+              </View>
+            }
+          >
+            {step === 0 ? (
+              <>
+                <Field ref={first} label="Your name" />
+                <Field label="Contact number" keyboardType="phone-pad" />
+                <Field label="Number of people" keyboardType="number-pad" />
+              </>
+            ) : (
+              <>
+                <Field ref={first} label="Preferred time" />
+                <Field label="Message" multiline />
+              </>
+            )}
+          </SheetScroll>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 }
 
@@ -315,6 +422,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
   },
   sheetFooter: { paddingHorizontal: 16, paddingVertical: 12 },
+  sheetButtons: { flexDirection: 'row', gap: 12 },
   sheetTitle: {
     fontSize: 18,
     fontWeight: '700',

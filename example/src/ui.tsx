@@ -16,7 +16,7 @@ import {
 } from '@saulzayn/rn-keyboard-form';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { fields } from './remote';
+import { buttons, changers, fields } from './remote';
 
 export const textColor = (theme: KeyboardFormTheme) =>
   theme.background === darkTheme.background ? '#F5F6FA' : '#11141C';
@@ -43,6 +43,9 @@ export function Field({
           // Known to the remote control by its label (dev only).
           if (node) fields.set(label, node);
           else fields.delete(label);
+          if (node && input.onChangeText)
+            changers.set(label, input.onChangeText);
+          else if (!node) changers.delete(label);
           if (typeof ref === 'function') ref(node);
           else if (ref) ref.current = node;
         }}
@@ -68,27 +71,46 @@ export function Field({
 export function Button({
   title,
   onPress,
+  secondary,
 }: {
   title: string;
   onPress: () => void;
+  /** Outlined instead of filled. */
+  secondary?: boolean;
 }): ReactNode {
   const theme = useKeyboardFormTheme();
+  // Known to the remote control by its title (dev only).
+  buttons.set(title, onPress);
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.button, { backgroundColor: theme.toolbar.tint }]}
+      style={[
+        styles.button,
+        secondary
+          ? { borderWidth: 1.5, borderColor: theme.toolbar.tint }
+          : { backgroundColor: theme.toolbar.tint },
+      ]}
     >
-      <Text style={styles.buttonText}>{title}</Text>
+      <Text
+        style={[styles.buttonText, secondary && { color: theme.toolbar.tint }]}
+      >
+        {title}
+      </Text>
     </Pressable>
   );
 }
 
-/** The bar under a form: anything passed in goes above its button. */
+/** The bar under a form: anything passed in goes above its button(s). */
 export function Footer({
   title = 'Save',
+  onPress = () => undefined,
+  back,
   children,
 }: {
   title?: string;
+  onPress?: () => void;
+  /** Shows a Back button next to the main one. */
+  back?: () => void;
   children?: ReactNode;
 }) {
   const theme = useKeyboardFormTheme();
@@ -104,7 +126,18 @@ export function Footer({
       ]}
     >
       {children}
-      <Button title={title} onPress={() => undefined} />
+      {back ? (
+        <View style={styles.buttons}>
+          <View style={styles.button1}>
+            <Button title="Back" onPress={back} secondary />
+          </View>
+          <View style={styles.button1}>
+            <Button title={title} onPress={onPress} />
+          </View>
+        </View>
+      ) : (
+        <Button title={title} onPress={onPress} />
+      )}
     </SafeAreaView>
   );
 }
@@ -123,6 +156,8 @@ const styles = StyleSheet.create({
   error: { color: ERROR, fontSize: 13 },
   button: { borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  buttons: { flexDirection: 'row', gap: 12 },
+  button1: { flex: 1 },
   footer: {
     padding: 16,
     gap: 10,

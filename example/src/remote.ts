@@ -10,6 +10,10 @@ type Input = ComponentRef<typeof TextInput>;
 
 /** Fields by label, so a command can focus one. */
 export const fields = new Map<string, Input>();
+/** Their change handlers by label, so typed text also reaches the form's state. */
+export const changers = new Map<string, (text: string) => void>();
+/** Buttons by title, so a command can press one. */
+export const buttons = new Map<string, () => void>();
 
 export type Command = { id: number; do: string; arg?: string };
 

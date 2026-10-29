@@ -178,6 +178,129 @@ export function GrowingNoteForm() {
   );
 }
 
+type StepField = { label: string; optional?: boolean } & Partial<
+  Parameters<typeof Field>[0]
+>;
+
+const STEPS: { title: string; fields: StepField[] }[] = [
+  {
+    title: 'Account',
+    fields: [
+      { label: 'Full name' },
+      { label: 'Username', autoCapitalize: 'none' },
+      { label: 'Mobile', keyboardType: 'phone-pad' },
+    ],
+  },
+  {
+    title: 'Address',
+    fields: [
+      { label: 'Street address' },
+      { label: 'Zip code', keyboardType: 'number-pad' },
+      { label: 'Town' },
+      { label: 'Delivery note', optional: true, multiline: true },
+    ],
+  },
+  {
+    title: 'Payment',
+    fields: [
+      { label: 'Name on card' },
+      { label: 'Card number', keyboardType: 'number-pad' },
+      { label: 'Expiry (MM/YY)', keyboardType: 'number-pad' },
+      { label: 'CVC', keyboardType: 'number-pad' },
+    ],
+  },
+];
+
+/**
+ * A form in three steps on one screen: Back / Next in the footer, required fields checked on Next
+ * (errors under the fields and a banner in the footer), and the next step's first field focused, so
+ * the keyboard stays up between steps. `key={step}` gives each step a fresh, scrolled-to-top form.
+ */
+export function StepsForm() {
+  const theme = useKeyboardFormTheme();
+  const [step, setStep] = useState(0);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [tried, setTried] = useState(false);
+  const [done, setDone] = useState(false);
+  const first = useRef<ComponentRef<typeof TextInput>>(null);
+  const { title, fields } = STEPS[step]!;
+  const missing = fields.filter((f) => !f.optional && !values[f.label]?.trim());
+  const last = step === STEPS.length - 1;
+
+  const go = (to: number) => {
+    setTried(false);
+    setStep(to);
+    // Once the next step's fields are mounted.
+    setTimeout(() => first.current?.focus(), 50);
+  };
+  const next = () => {
+    if (missing.length) {
+      setTried(true);
+      return;
+    }
+    if (last) {
+      Keyboard.dismiss();
+      setDone(true);
+    } else go(step + 1);
+  };
+
+  return (
+    <FormScroll
+      key={step}
+      footer={
+        <Footer
+          title={last ? (done ? 'Sent ✓' : 'Finish') : 'Next'}
+          onPress={next}
+          back={step > 0 ? () => go(step - 1) : undefined}
+        >
+          {tried && missing.length ? (
+            <Text style={styles.banner}>
+              {missing.length === 1
+                ? '1 field needs attention'
+                : `${missing.length} fields need attention`}
+            </Text>
+          ) : null}
+        </Footer>
+      }
+    >
+      <View style={styles.steps}>
+        {STEPS.map((s, i) => (
+          <View
+            key={s.title}
+            style={[
+              styles.dot,
+              {
+                backgroundColor:
+                  i <= step ? theme.toolbar.tint : theme.toolbar.disabled,
+              },
+            ]}
+          />
+        ))}
+      </View>
+      <Text style={[styles.stepTitle, { color: textColor(theme) }]}>
+        Step {step + 1} of {STEPS.length}: {title}
+      </Text>
+      {fields.map(({ label, optional, ...props }, i) => (
+        <Field
+          key={label}
+          ref={i === 0 ? first : undefined}
+          label={optional ? `${label} (optional)` : label}
+          value={values[label] ?? ''}
+          onChangeText={(v) => setValues((s) => ({ ...s, [label]: v }))}
+          error={
+            tried && missing.some((m) => m.label === label)
+              ? `${label} is required`
+              : undefined
+          }
+          autoComplete="off"
+          importantForAutofill="no"
+          {...props}
+        />
+      ))}
+    </FormScroll>
+  );
+}
+
 function Card({
   title,
   children,
@@ -231,6 +354,9 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   cardBody: { borderRadius: 14, padding: 14, gap: 14 },
+  steps: { flexDirection: 'row', gap: 6 },
+  dot: { flex: 1, height: 4, borderRadius: 2 },
+  stepTitle: { fontSize: 20, fontWeight: '800' },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',

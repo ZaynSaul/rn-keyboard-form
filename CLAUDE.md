@@ -63,7 +63,8 @@ first keyboard open can be off.
 - `example/`: Expo SDK 58 dev-client app (react-native-keyboard-controller is native: no Expo Go).
   Screens (`src/forms.tsx`, shared bits in `src/ui.tsx`): long form (+ without toolbar / footer), sign in
   (autoFocus, password, return key), short form, sections (cards, validation, footer banner, switch),
-  note taller than the screen, iOS page-sheet modal, bottom sheet; dark + "OK" switches. Android back
+  note taller than the screen, steps (Back / Next, validation, `key={step}`), iOS page-sheet modal,
+  bottom sheet, bottom sheet in two steps; dark + "OK" switches. Android back
   returns to the list. `example/android` and `example/ios` are generated (`expo prebuild`), not committed.
 - Built with react-native-builder-bob (`yarn prepare` → `lib/`). Yarn 4 via `.yarnrc.yml` `yarnPath`.
 
@@ -77,7 +78,8 @@ first keyboard open can be off.
 - `example/src/remote.ts`: dev-only remote control for a real device that can't be tapped from the
   computer. The app polls `http://<metro host>:8097/cmd.json` (serve a folder with
   `python3 -m http.server 8097`). Commands: `screen <key>`, `modal|sheet|dark|ok [off]`,
-  `focus <label>`, `next`, `prev`, `dismiss`, `type <label>=<text>`.
+  `focus <label>`, `next`, `prev`, `dismiss`, `type <label>=<text>`, `press <button title>`,
+  `stepsheet [off]`.
 
 ## Conventions
 

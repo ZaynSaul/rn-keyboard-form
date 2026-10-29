@@ -143,6 +143,38 @@ import { SheetScroll } from '@saulzayn/rn-keyboard-form';
 </SheetScroll>;
 ```
 
+### 4. A form in steps
+
+Each step can be its own screen (push the next one with your router), each with its own `FormScroll`.
+Or keep one screen and swap the fields: give `FormScroll` a `key` per step, so every step starts at
+the top, and focus the next step's first field so the keyboard stays up between steps:
+
+```tsx
+const [step, setStep] = useState(0);
+const first = useRef<ComponentRef<typeof TextInput>>(null); // ComponentRef from 'react'
+const go = (to: number) => {
+  setStep(to);
+  setTimeout(() => first.current?.focus(), 50); // once the step's fields are mounted
+};
+
+<FormScroll
+  key={step}
+  footer={
+    <SafeAreaView edges={['bottom']} style={{ flexDirection: 'row', gap: 12, padding: 16 }}>
+      {step > 0 && <Button title="Back" onPress={() => go(step - 1)} />}
+      <Button title={step < 2 ? 'Next' : 'Finish'} onPress={() => go(step + 1)} />
+    </SafeAreaView>
+  }
+>
+  {step === 0 && <TextInput ref={first} placeholder="Full name" />}
+  {step === 1 && <TextInput ref={first} placeholder="Street" />}
+  {step === 2 && <TextInput ref={first} placeholder="Card number" />}
+</FormScroll>;
+```
+
+Validation errors and a banner in the footer on Next keep the focused field in view. The same works in a
+bottom sheet with `<SheetScroll key={step}>`: the sheet fits each step's height.
+
 ## Props
 
 ### `FormScroll`
@@ -205,8 +237,8 @@ yarn example android   # or: yarn example ios
 ```
 
 It has a long form (with and without the toolbar or footer), sign in, a short form, sections with
-validation, a note taller than the screen, a form in an iOS page sheet and a bottom sheet, with
-light / dark and label switches.
+validation, a note taller than the screen, a form in three steps, a form in an iOS page sheet, a
+bottom sheet and a bottom sheet in two steps, with light / dark and label switches.
 
 ## Contributing
 
