@@ -70,6 +70,8 @@ first keyboard open can be off.
 
 ## Checks
 
+- After any change to a `package.json` (versions, peer ranges), run `yarn install` and commit `yarn.lock`:
+  CI installs with `--immutable` and fails otherwise.
 - `yarn typecheck`, `yarn lint`, `yarn prepare`; `npm pack --dry-run` ships only lib/, src/, README,
   LICENSE (~23 kB).
 - Device testing: every example screen on a phone and a tablet, portrait and landscape, rotating with
