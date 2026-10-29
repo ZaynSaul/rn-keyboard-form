@@ -24,7 +24,10 @@ Maintainer-only notes (status, devices, local setup) live in `CLAUDE.local.md`, 
   field, a switch adds fields), and after every keyboard show (rotation, keyboard type change),
   re-measures the focused field and scrolls the rest of the way, up or down; never past the field's top
   (tall multiline fields). Uses the keyboard height from events: `KeyboardController.state()` goes
-  stale after rotation on Android.
+  stale after rotation on Android. Two separate timers: after a layout change (content or footer
+  size) it checks within 32ms and jumps without animation, so moving to the next field while an error
+  and a footer banner appear reads as one scroll (it was three over ~0.8s, seen in the demo video);
+  after keyboardDidShow it waits 250ms and animates.
 - Footer, toolbar and corner strip are moved by `overlap`: how far the keyboard reaches into the form
   (form bottom measured in window coords; on iOS via keyboard-controller's native
   `viewPositionInWindow`, because measure()/measureInWindow() inside an iOS Modal are modal-relative).

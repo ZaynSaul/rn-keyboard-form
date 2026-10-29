@@ -49,6 +49,9 @@ const TOOLBAR_H = 42;
 const TOOLBAR_LIFT = KEYBOARD_BORDER_RADIUS > 0 ? 11 : 0;
 // The strip behind the toolbar reaches this far under the keyboard's top edge (its rounded corners).
 const CORNER_UNDERLAP = 30;
+// How long revealFocused waits: two frames after a layout change, and after the keyboard shows long
+// enough for the scroll view's own scroll to finish.
+const REVEAL_DELAY = { layout: 32, keyboard: 250 };
 
 export type FormScrollProps = Omit<ScrollViewProps, 'children'> & {
   children: ReactNode;
@@ -170,17 +173,22 @@ export function FormScroll({
   const keyboardH = useRef(0);
   const liveRef = useRef(live);
   liveRef.current = live;
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // One pending check per kind: a quick one after a layout change doesn't cancel the later one after
+  // the keyboard shows, or the other way round.
+  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   // The scroll view brings the field into view where it was when it got focus, and again when the
   // field itself grows. Not when something above it changes size (an error under the field just
-  // left), and not reliably after the screen turns (Android hides and shows the keyboard on the way,
-  // and the field's old position is used). Once its own scroll is done, this checks the field again,
-  // measured in its own window, and scrolls the rest of the way, up or down.
-  const revealFocused = useRef(() => {});
-  revealFocused.current = () => {
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
+  // left), nor when the footer grows (an error banner), and not reliably after the screen turns
+  // (Android hides and shows the keyboard on the way, and the field's old position is used). This
+  // checks the field again, measured in its own window, and scrolls the rest of the way, up or down.
+  // After a layout change it checks within a couple of frames, so moving to the next field while an
+  // error appears reads as one scroll, not a second one once the first has stopped. After the keyboard
+  // shows (rotation, another keyboard type) it waits for the scroll view's own scroll to finish.
+  const revealFocused = useRef((_kind: 'layout' | 'keyboard') => {});
+  revealFocused.current = (kind) => {
+    clearTimeout(timers.current[kind]);
+    timers.current[kind] = setTimeout(() => {
       const input = TextInput.State.currentlyFocusedInput();
       if (!input || !keyboardH.current) return;
       screenRef.current?.measureInWindow((_sx, screenY) => {
@@ -210,14 +218,17 @@ export function FormScroll({
           if (Math.abs(by) > 1) {
             scrollRef.current?.scrollTo({
               y: Math.max(0, offset.current + by),
-              animated: true,
+              // A layout change (an error, a banner) appears at once, so the field moves with it
+              // instead of sliding after it.
+              animated: kind === 'keyboard',
             });
           }
         });
       });
-    }, 250);
+    }, REVEAL_DELAY[kind]);
   };
   useEffect(() => {
+    const pending = timers.current;
     const subs = [
       KeyboardEvents.addListener('keyboardWillShow', () =>
         measureArea.current()
@@ -226,7 +237,12 @@ export function FormScroll({
         keyboardH.current = e.height;
         // Where iOS has lifted a form sheet to.
         measureArea.current();
-        revealFocused.current();
+        revealFocused.current('keyboard');
+      }),
+      // No checks while it closes: the footer's size can change on the way down (inside an Android
+      // Modal), and nothing needs revealing once it's gone.
+      KeyboardEvents.addListener('keyboardWillHide', () => {
+        keyboardH.current = 0;
       }),
       KeyboardEvents.addListener('keyboardDidHide', () => {
         keyboardH.current = 0;
@@ -235,7 +251,7 @@ export function FormScroll({
     ];
     return () => {
       subs.forEach((sub) => sub.remove());
-      clearTimeout(timer.current);
+      Object.values(pending).forEach(clearTimeout);
     };
   }, []);
   const backdropH = bar + CORNER_UNDERLAP;
@@ -283,7 +299,7 @@ export function FormScroll({
           }}
           onContentSizeChange={(w, h) => {
             contentH.current = h;
-            revealFocused.current();
+            revealFocused.current('layout');
             scroll.onContentSizeChange?.(w, h);
           }}
         >
@@ -300,7 +316,10 @@ export function FormScroll({
       {footer ? (
         <Animated.View
           style={footerStyle}
-          onLayout={(e) => setFooterH(e.nativeEvent.layout.height)}
+          onLayout={(e) => {
+            setFooterH(e.nativeEvent.layout.height);
+            revealFocused.current('layout');
+          }}
         >
           {footer}
         </Animated.View>
